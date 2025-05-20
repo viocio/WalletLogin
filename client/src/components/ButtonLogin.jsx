@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { message } from "../config";
+
 function ButtonLogin({ setAdresaWallet, setSemnatura }) {
   const [errorMessage, setErrorMessage] = useState(null);
 
