@@ -1,33 +1,34 @@
 import React, { useState } from "react";
-
-function ButtonLogin() {
-  const [defaultAccount, setDefaultAccount] = useState(null);
+import { message } from "../config";
+function ButtonLogin({ setAdresaWallet, setSemnatura }) {
   const [errorMessage, setErrorMessage] = useState(null);
 
-  const walletLoginHandler = () => {
-    if (window.ethereum) {
-      window.ethereum
-        .request({ method: "eth_requestAccounts" })
-        .then((result) => {
-          accountChangedHandler(result[0]);
-        })
-        .catch((err) => {
-          console.error(err);
-          setErrorMessage("A apărut o eroare la conectare.");
-        });
-    } else {
-      setErrorMessage("Instalează MetaMask");
-    }
-  };
+  const walletLoginHandler = async () => {
+    try {
+      if (!window.ethereum) {
+        setErrorMessage("Instaleaza MetaMask!");
+        return;
+      }
+      const result = await window.ethereum.request({
+        method: "eth_requestAccounts",
+      });
 
-  const accountChangedHandler = (newAccount) => {
-    setDefaultAccount(newAccount);
+      setAdresaWallet(result[0]);
+
+      const mesajSemnat = await window.ethereum.request({
+        method: "personal_sign",
+        params: [message, result[0]],
+      });
+      setSemnatura(mesajSemnat);
+    } catch (err) {
+      console.log(err);
+      setErrorMessage("A aparut o eroare la conectare");
+    }
   };
 
   return (
     <div style={{ textAlign: "center" }}>
       <button onClick={walletLoginHandler}>Login</button>
-      {defaultAccount && <p>Wallet conectat: {defaultAccount}</p>}
       {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
     </div>
   );
