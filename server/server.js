@@ -1,5 +1,10 @@
 const express = require("express");
 const cors = require("cors");
+const ethers = require("ethers");
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
+const jwtSecret = process.env.JWT_SECRET;
+
 
 const app = express();
 app.use(express.json());
@@ -18,9 +23,18 @@ app.post("/api/login", (req, res) => {
   }
 
   // TODO: verifică semnătura cu ethers.js și dacă e validă, emite JWT
-
-  // Pentru exemplu, răspundem cu succes
-  res.json({ token: "exemplu.jwt.token" });
+  try {
+  const recoveredAddress = ethers.verifyMessage(message, signature);
+  if(recoveredAddress.toLowerCase() === address.toLowerCase()) {
+    const token = jwt.sign({address: address}, jwtSecret);
+    res.json({token});
+  } else {
+      res.status(401).json({error: "Semnatura invalida"});
+  }
+  } catch(err) {
+    console.error(err);
+    res.status(500).json({ error: "Eroare la procesarea semnăturii." });
+  };
 });
 
 // Pornește serverul pe portul 3001

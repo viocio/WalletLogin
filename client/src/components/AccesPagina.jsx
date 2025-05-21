@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { message } from "../config";
+import { ethers } from "ethers";
+import { useNavigate } from "react-router-dom";
 
 function AccesPagina({ semnatura, adresa }) {
   const [errorMessage, setErrorMessage] = useState(null);
+  const navigate = useNavigate();
   const accesPaginaHandler = async () => {
     try {
-      const recoveredAdress = ethers.utils.verifyMessage(message, semnatura);
+      const recoveredAdress = ethers.verifyMessage(message, semnatura);
       if (adresa.toLowerCase() === recoveredAdress.toLowerCase()) {
         const response = await fetch("http://localhost:3001/api/login", {
           method: "POST",
@@ -16,7 +19,14 @@ function AccesPagina({ semnatura, adresa }) {
             message: message,
           }),
         });
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error(errorData.error);
+          return;
+        }
         const data = await response.json();
+        const token = data.token;
+        navigate("/welcome");
       } else {
         setErrorMessage("Semnatura nu este valida.");
       }
